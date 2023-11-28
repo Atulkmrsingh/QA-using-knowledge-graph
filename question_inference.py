@@ -8,20 +8,14 @@ import spacy
 import pandas as pd
 #get the kg
 df = pd.read_csv('IMDB-Movie-Data.csv')  
-nlp = spacy.load("en_core_web_sm")
 df['Revenue (Millions)'].fillna(0, inplace=True)
 df['Metascore'].fillna(df['Metascore'].mean(), inplace=True) 
-
 df['Actors'] = df['Actors'].str.split(',')
 df['Genre'] = df['Genre'].str.split(',')
 df['Director'] = df['Director'].str.lower()
+
+# Build the graph
 G = nx.Graph()
-
-stopfile="stop_words.txt"
-with open(stopfile, 'r') as file:
-    stop_word_list = [line.strip() for line in file]
-
-
 NERobjects = []
 
 for index, row in df.iterrows():
@@ -56,8 +50,6 @@ for index, row in df.iterrows():
             G.add_node(genre, type="genre")
             if genre not in NERobjects:
                 NERobjects.append(genre)
-        G.add_edge(str(row['Title']), genre, relationship='genres')
-# print(G)
 
 
 def get_neighboring_nodes(word_list, kg):
@@ -138,11 +130,9 @@ entities=[]
 for ner in NERobjects:
     if str(ner).lower() in question.lower():
         entities.append(ner.lower())
-print(entities)
 neighboring_nodes = get_neighboring_nodes(entities, G)
 nnodes=set(neighboring_nodes)
 # Print the resulting neighboring nodes
-print(len(nnodes))
 bert_embedding = get_bert_embedding(question)
 predicted_embedding = get_predicted_node_embedding(bert_embedding)
 
